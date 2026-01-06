@@ -1,5 +1,5 @@
 import qs from 'qs'; 
-import { cacheLife } from 'next/cache';
+
 
 export const STRAPI_BASE_URL = process.env.STRAPI_BASE_URL || "http://localhost:1337";
 
@@ -23,20 +23,19 @@ const QUERY_HOME_PAGE = {
 };
 
 export async function getHomePage() {
-  'use cache';
-  
-  cacheLife({expire: 60})
-  
-  const query = qs.stringify(QUERY_HOME_PAGE); 
-  const response = await getStrapiData(`/api/home-page?${query}`)
-  return response?.data
+  const query = qs.stringify(QUERY_HOME_PAGE);
+  // Eliminamos 'use cache' y cacheLife para usar el estándar de fetch
+  const response = await getStrapiData(`/api/home-page?${query}`);
+  return response?.data;
 }
 
-
 export async function getStrapiData(url) {
-
   try {
-    const response = await fetch(`${STRAPI_BASE_URL}${url}`);
+    // Agregamos revalidate: 60 para que Next.js cachee la respuesta 1 minuto
+    const response = await fetch(`${STRAPI_BASE_URL}${url}`, {
+      next: { revalidate: 60 },
+    });
+
     if (!response.ok) {
       throw new Error(`HTTP error, status: ${response.status}`);
     }
