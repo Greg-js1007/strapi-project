@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 
+import { Suspense } from "react";
 import { getHomePage } from "@/lib/strapi";
 import { HeroSection } from "@/components/hero-section";
 
@@ -11,17 +11,21 @@ export async function generateMetadata() {
   };
 }
 
-export default async function Home() {
+// 1. Crea este componente que es el que hace el fetch
+async function HomeContent() {
   const strapiData = await getHomePage();
-
-  console.log(strapiData);
-
-  const { title, description } = strapiData;
   const [heroSection] = strapiData?.sections || [];
 
+  return <HeroSection data={heroSection} />;
+}
+
+// 2. Tu página principal solo sirve de contenedor y pone el Suspense
+export default function Home() {
   return (
     <main className="container mx-auto py-6">
-      <HeroSection data={heroSection}></HeroSection>
+      <Suspense fallback={<p>Cargando secciones...</p>}>
+        <HomeContent />
+      </Suspense>
     </main>
   );
 }
